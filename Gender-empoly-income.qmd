@@ -1,0 +1,56 @@
+---
+title: "Gender, Employment and Income"
+author: "Ama Owusu-Darko"
+format: html
+editor: visual
+---
+
+## Topic
+
+I am a graduate student in Ghana. My research is exploring the mediating effect of gender in the causal pathway of employment and income in the agricultural sector in 5 West African countries.
+
+```{r get_data}
+#| echo: false
+
+# Five data sets for 5 West African countries
+library(haven)
+gha21 <- read_stata("C:/Users/Korantema/Downloads/UNHCR_GHA_2021_LIS_data_v1_1.zip")
+
+
+
+```
+
+```{r add_country_code}
+
+get_labels(gha21$Country)
+
+```
+
+## Data Source
+
+**Livelihoods Programme Monitoring Beneficiary Survey, 2021**
+
+Unit of analysis- household
+
+## Methodology
+
+I downloaded the data sets for 5 West African countries, Ghana, Nigeria, Niger, Chad, Cameroon.
+
+Links-
+
+-   [Nigeria - Livelihoods Programme Monitoring Beneficiary Survey, 2021 (unhcr.org)](https://microdata.unhcr.org/index.php/catalog/756/get-microdata)
+
+-   [Cameroon - Livelihoods Programme Monitoring Beneficiary Survey, 2021 (unhcr.org)](https://microdata.unhcr.org/index.php/catalog/745/get-microdata)
+
+
+### Data Cleaning of dta files
+
+All data sets have 104 variables (columns) but the categorical data has different labels.
+
+## References
+
+UNHCR (2021). Niger: Livelihoods Programme Monitoring Beneficiary Survey, 2021. Accessed from: [https://microdata.unhcr.org](https://microdata.unhcr.org/)
+
+
+UNHCR (2021). Chad: Livelihoods Programme Monitoring Beneficiary Survey, 2021. Accessed from: [https://microdata.unhcr.org](https://microdata.unhcr.org/)
+
