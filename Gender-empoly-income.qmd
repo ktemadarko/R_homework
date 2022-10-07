@@ -9,6 +9,15 @@ editor: visual
 
 I am a graduate student in Ghana. My research is exploring the mediating effect of gender in the causal pathway of employment and income in the agricultural sector in 5 West African countries.
 
+```{r packages}
+#| echo: false
+library(tidyverse)  # general use ----
+library(here)       # file paths  ----
+library(haven)      # import .sav files ----  
+library(labelled)   # tools for labelled data ----
+library(sjlabelled) # more tools for labelled data ----
+```
+
 ```{r get_data}
 #| echo: false
 
@@ -16,13 +25,95 @@ I am a graduate student in Ghana. My research is exploring the mediating effect 
 library(haven)
 gha21 <- read_stata("C:/Users/Korantema/Downloads/UNHCR_GHA_2021_LIS_data_v1_1.zip")
 
+chd21 <- read_dta("C:/Users/Korantema/Downloads/UNHCR_LIS_data_v1_1/UNHCR_TCD_2021_LIS_data_v1.1.dta")
+cmr21 <- read_dta("C:/Users/Korantema/Downloads/UNHCR_LIS_data_v1_1/UNHCR_CMR_2021_LIS_data_v1.1.dta")
+
+nger21 <- read_dta("C:/Users/Korantema/Downloads/UNHCR_LIS_data_v1_1/UNHCR_NER_2021_LIS_data_v1.1.dta")
+
+nga21 <- read_dta("C:/Users/Korantema/Downloads/UNHCR_LIS_data_v1_1/UNHCR_NGA_2021_LIS_data_v1.1.dta")
+
 
 
 ```
 
-```{r add_country_code}
+```{r dictionary}
 
-get_labels(gha21$Country)
+# create data dictionary ----
+gh_dictionary <- labelled::generate_dictionary(gha21)
+
+
+```
+
+#### Get data, load packages, ..... **combine data**
+
+create my own id after combining
+
+```{r na_columns}
+#find  and remove na columns
+gh_na<-gha21 |> purrr::keep(~!all(is.na(.)))
+gh_names<- names(gh_na) #character vector
+cmr_na<- cmr21 |> purrr::keep(~!all(is.na(.)))
+cmr_names<- names(cmr_na)
+
+nger_na <-nger21 |> purrr::keep(~!all(is.na(.)))
+nga_na<- nga21|> purrr::keep(~!all(is.na(.)))
+
+chd_na <- chd21 |> purrr::keep(~!all(is.na(.)))
+
+
+intersect(gh_names,cmr_names)#, names(nger_na),names(chd_na),names(nga_na))
+
+intersect(intersect(gh_names,cmr_names), intersect(names(nger_na),names(chd_na)))
+
+inter_cols<-intersect(names(nga_na),(intersect(intersect(gh_names,cmr_names), intersect(names(nger_na),names(chd_na)))))
+          
+gha<-gha21 |> select(all_of(inter_cols))
+dictionary <- labelled::generate_dictionary(gha)
+#nger<- nger21 |> select(all_of(inter_cols))
+
+#cmr<-cmr21 |> select(all_of(inter_cols))
+#chd<-chd21 |> select(all_of(inter_cols))
+
+#nga<- nga21 |> select(all_of(inter_cols))
+
+
+
+```
+
+```{r as_factor}
+
+
+factor_out<- function(df){
+  df |> select(all_of(inter_cols)) |> 
+    #[,1:11]|> 
+    #dplyr::select(c(31:30)) |>
+    dplyr::mutate(across(c(STATUS,Country:BE, Gender:CountryOrigin, 
+                           Education,MaritalStatus,O1SubSector:Crop1,
+                           Crop2, Animal1, O1IncomeYear:O2EmployRegistered,
+                           O2EmployOthers:O2EmploymentSector)
+                           ,haven::as_factor)) #|>
+    #dplyr::mutate(across(c(2,4:12,  16:18, 20:21,24:25),haven::as_factor)) |> 
+   # summary()
+}
+
+#first_10(wa5)  
+#wa5<-
+#purrr::map(wa5|> dplyr::select(c(1:11)),first_10)
+
+#wa5_list<-c(gha, chd, cmr,nger,nga)
+#purrr::map(wa5_list,factor_out)
+```
+
+```{r wa5}
+wa5_data<-dplyr::bind_rows(factor_out(gha21),factor_out(chd21),factor_out(cmr21),factor_out(nger21),factor_out(nga21))
+
+library(arrow)
+
+wa5_data |> 
+  group_by(Country) |> 
+  arrow::write_dataset("wa5", format="parquet")
+
+str(wa5_data)
 
 ```
 
